@@ -42,9 +42,14 @@ def koneksi():
     return sqlite3.connect(DB_APP)
 
 
+@st.cache_resource  # cukup sekali per server, walau banyak pengguna membuka aplikasi bersamaan
 def siapkan_database():
     if not DB_APP.exists():
-        shutil.copy(DB_SUMBER, DB_APP)          # mulai dari salinan data latihan
+        # mulai dari salinan data latihan; salin ke file sementara dulu supaya
+        # tidak ada yang sempat membuka file yang baru setengah tersalin
+        sementara = DB_APP.with_suffix(".tmp")
+        shutil.copy(DB_SUMBER, sementara)
+        os.replace(sementara, DB_APP)
     with koneksi() as con:
         con.execute(
             """CREATE TABLE IF NOT EXISTS pengguna (
